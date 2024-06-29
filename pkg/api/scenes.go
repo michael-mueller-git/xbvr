@@ -306,6 +306,9 @@ func (i SceneResource) getFilters(req *restful.Request, resp *restful.Response) 
 
 	// Available release dates (YYYY-MM)
 	switch db.Dialect().GetName() {
+	case "postgres":
+		tx.Select("TO_CHAR(release_date, 'YYYY-MM') as release_date_text").
+			Group("TO_CHAR(release_date, 'YYYY-MM')").Find(&scenes)
 	case "mysql":
 		tx.Select("DATE_FORMAT(release_date, '%Y-%m') as release_date_text").
 			Group("DATE_FORMAT(release_date, '%Y-%m')").Find(&scenes)
@@ -399,6 +402,12 @@ func (i SceneResource) getFilters(req *restful.Request, resp *restful.Response) 
 	var results []Results
 	// resolutions
 	switch db.Dialect().GetName() {
+	case "postgres":
+		db.Table("files").Select("distinct case when video_projection = '360_tb' then (video_width+499)*2 / 1000 else (video_width+499) / 1000 end as result").
+			Where("`type`='video'").
+			Order("case when video_projection = '360_tb' then (video_width+499)*2 / 1000 else (video_width+499) / 1000 end").
+			Find(&results)
+
 	case "mysql":
 		db.Table("files").Select("distinct case when  video_projection = '360_tb' then (video_width+499)*2 div 1000 else (video_width+499) div 1000 end as result").
 			Where("`type`='video'").

@@ -101,7 +101,7 @@ type Scene struct {
 	NeedsUpdate   bool   `json:"needs_update" xbvrbackup:"-"`
 	EditsApplied  bool   `json:"edits_applied" gorm:"default:false" xbvrbackup:"-"`
 	TrailerType   string `json:"trailer_type" xbvrbackup:"trailer_type"`
-	TrailerSource string `json:"trailer_source" sql:"type:longtext;"  xbvrbackup:"trailer_source"`
+	TrailerSource string `json:"trailer_source" sql:"type:text;"  xbvrbackup:"trailer_source"`
 	ChromaKey     string `json:"passthrough" xbvrbackup:"passthrough"`
 	Trailerlist   bool   `json:"trailerlist" gorm:"default:false" xbvrbackup:"trailerlist"`
 	IsSubscribed  bool   `json:"is_subscribed" gorm:"default:false"`
@@ -1090,6 +1090,8 @@ func queryScenes(db *gorm.DB, r RequestSceneList) (*gorm.DB, *gorm.DB) {
 		tx = tx.Order("release_date asc")
 	case "title_desc":
 		switch tx.Dialect().GetName() {
+		case "postgres":
+			tx = tx.Order("title desc")
 		case "mysql":
 			tx = tx.Order("title desc")
 		case "sqlite3":
@@ -1097,6 +1099,8 @@ func queryScenes(db *gorm.DB, r RequestSceneList) (*gorm.DB, *gorm.DB) {
 		}
 	case "title_asc":
 		switch tx.Dialect().GetName() {
+		case "postgres":
+			tx = tx.Order("title asc")
 		case "mysql":
 			tx = tx.Order("title asc")
 		case "sqlite3":

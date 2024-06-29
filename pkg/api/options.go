@@ -387,6 +387,8 @@ func (i ConfigResource) toggleSiteField(req *restful.Request, resp *restful.Resp
 func (i ConfigResource) listSitesWithDB(req *restful.Request, resp *restful.Response, db *gorm.DB) {
 	var sites []models.Site
 	switch db.Dialect().GetName() {
+	case "postgres":
+		db.Order("name asc").Find(&sites)
 	case "mysql":
 		db.Order("name asc").Find(&sites)
 	case "sqlite3":

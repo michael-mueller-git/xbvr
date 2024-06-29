@@ -7,6 +7,7 @@ import (
 	"github.com/avast/retry-go/v4"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/thoas/go-funk"
@@ -16,7 +17,7 @@ import (
 
 var log = &common.Log
 var dbConn *dburl.URL
-var supportedDB = []string{"mysql", "sqlite3"}
+var supportedDB = []string{"mysql", "postgres", "sqlite3"}
 var commonConnection *gorm.DB
 
 func parseDBConnString() {

@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=xbvr
+      - POSTGRES_PASSWORD=MyPassword123
+      - POSTGRES_DATABASE=xbvr
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./db:/var/lib/postgresql/data
+  xbvr:
+    build:
+      context: .
+    # image: xbvr
+    container_name: xbvr2
+    restart: unless-stopped
+    ports:
+      - "9998:9999"
+    volumes:
+      - ./videos:/videos
+      - ./config:/root/.config
+    environment:
+      - DATABASE_URL=postgres://xbvr:MyPassword123@db:5432/xbvr?sslmode=disable
+

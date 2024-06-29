@@ -48,6 +48,20 @@ func GenericActorScrapers() {
 	var output []outputList
 	switch commonDb.Dialect().GetName() {
 	// gets the list of an actors Urls for scraper and join to external_reference_links to see if the haven't been linked
+	case "postgres":
+		sqlcmd = `
+		WITH actorlist AS (
+			SELECT actors.id,
+				   trim(both '"' from (json_array_elements(actors.urls)->>'url')) AS url,
+				   trim(both '"' from (json_array_elements(actors.urls)->>'type')) AS linktype
+			FROM actors
+			WHERE urls::text LIKE '% scrape%' AND jsonb_typeof(actors.urls) = 'array'
+		)
+		SELECT actorlist.id, url, linktype
+		FROM actorlist
+		LEFT JOIN external_reference_links erl ON erl.internal_db_id = actorlist.id AND erl.external_source = actorlist.linktype
+		WHERE erl.id IS NULL AND actorlist.linktype LIKE '% scrape';
+			`
 	case "mysql":
 		sqlcmd = `
 		WITH actorlist AS (

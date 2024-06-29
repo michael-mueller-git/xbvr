@@ -33,6 +33,9 @@ func GetDMSData() DMSData {
 
 	// Available release dates (YYYY-MM)
 	switch db.Dialect().GetName() {
+	case "postgres":
+		tx.Select("TO_CHAR(release_date, 'YYYY-MM') as release_date_text").
+			Group("TO_CHAR(release_date, 'YYYY-MM')").Find(&scenes)
 	case "mysql":
 		tx.Select("DATE_FORMAT(release_date, '%Y-%m') as release_date_text").
 			Group("DATE_FORMAT(release_date, '%Y-%m')").Find(&scenes)

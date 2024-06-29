@@ -416,12 +416,33 @@ func MatchAkaPerformers() {
 
 	// find performers, that are unmatched, get their scenes, cross join with their aliases
 	switch db.Dialect().GetName() {
+	case "postgres":
+		sqlcmd = `
+		SELECT
+			trim(both '"' from (u.value->>'Performer')::jsonb->>'id') AS actor_id,
+			trim(both '"' from u.value->>'As') AS aka_name,
+			erl_s.internal_db_id AS scene_internal_db_id,
+			(u.value->>'Performer')::jsonb->>'aliases' AS aliases
+		FROM
+			external_references er_p
+		LEFT JOIN
+			external_reference_links erl_p ON erl_p.external_reference_id = er_p.id
+		JOIN
+			external_references er_s ON er_s.external_data::text LIKE '%' || er_p.external_id || '%'
+		JOIN
+			external_reference_links erl_s ON erl_s.external_reference_id = er_s.id
+		CROSS JOIN LATERAL
+			jsonb_array_elements(er_s.external_data::jsonb->'performers') AS u(value)
+		WHERE
+			er_p.external_source = 'stashdb performer'
+			AND erl_p.internal_db_id IS NULL;
+		`
 	case "mysql":
 		sqlcmd = `
 		select trim('"' from json_extract(value, '$.Performer.id')) as actor_id, trim('"' from json_extract(value, '$.As')) as aka_name, erl_s.internal_db_id scene_internal_db_id, json_extract(value, '$.Performer.aliases') as aliases
 		FROM external_references er_p
 		left join external_reference_links erl_p on erl_p.external_reference_id = er_p.id
-		JOIN external_references er_s on er_s.external_data like CONCAT('%', er_p.external_id, '%') 
+		JOIN external_references er_s on er_s.external_data like CONCAT('%', er_p.external_id, '%')
 		join external_reference_links erl_s on erl_s.external_reference_id = er_s.id
 		JOIN JSON_TABLE(er_s.external_data , '$.performers[*]' COLUMNS(value JSON PATH '$' )) u
 		where er_p.external_source ='stashdb performer' and erl_p.internal_db_id is null
@@ -429,7 +450,7 @@ func MatchAkaPerformers() {
 	case "sqlite3":
 		sqlcmd = `
 		select json_extract(value, '$.Performer.id') as actor_id, json_extract(value, '$.As') as aka_name, erl_s.internal_db_id scene_internal_db_id,  json_extract(value, '$.Performer.aliases') as aliases
-		from external_references er_p  
+		from external_references er_p
 		left join external_reference_links erl_p on erl_p.external_reference_id = er_p.id
 		join external_references er_s on er_s.external_data like '%' || er_p.external_id || '%'
 		join external_reference_links erl_s on erl_s.external_reference_id = er_s.id

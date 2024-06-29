@@ -575,6 +575,8 @@ func Migrate() {
 			Migrate: func(tx *gorm.DB) error {
 				var err error
 				switch tx.Dialect().GetName() {
+				case "postgres":
+					err = tx.Model(&models.Action{}).Exec("ALTER TABLE actions RENAME TO actions_old2").Error
 				case "sqlite3":
 					err = tx.Model(&models.Action{}).Exec("ALTER TABLE actions RENAME TO actions_old2").Error
 				case "mysql":
@@ -724,6 +726,9 @@ func Migrate() {
 				err := tx.AutoMigrate(Scene{}).Error
 				if err != nil {
 					return err
+				}
+				if models.GetDBConn().Driver == "postgres" {
+					return nil;
 				}
 				return tx.Exec("update scenes set script_published = '0000-00-00' where script_published is null").Error
 			},

@@ -67,6 +67,7 @@ require (
 require (
 	github.com/blevesearch/go-faiss v1.0.13 // indirect
 	github.com/blevesearch/zapx/v16 v16.0.12 // indirect
+	github.com/lib/pq v1.1.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
